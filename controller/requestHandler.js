@@ -1,18 +1,52 @@
 var mysql = require("mysql2");
+var escapeHtml = require('escape-html');
 //use the router class in express
 const express = require("express");
+
 const router = express.Router();
 const bodyParser = require("body-parser");
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
 const { validationRule } = require("./validationrules");
 
-
+// without this, req.body will be undefined.
+router.use(urlencodedParser)
 
 //-----------------------------------------------------for Log in & Register ----------------------------------//
 
-router.get("/log_in", (req, res) => {
-    return res.render("log_in");
+function userLoggedIn(req) { // return true when user is logged in; false otherwise
+    // if a session was once created but expired: return false
+    // req.session.user: assigned in the "/log_in" handler method, when user logs in successfully
+    return req.session.user != null;
+}
+
+router.get("/", (req, res) => {
+    if (userLoggedIn(req)) {
+        res.send('hello, ' + req.session.user + '!')
+    }
+    else {
+        res.render("log_in.ejs", { messages: { error: null } });
+    }
+});
+
+// handles login: start session
+router.post("/log_in", async (req, res) => {
+    // regenerate the session, which is good practice to help
+    // guard against forms of session fixation
+    req.session.regenerate(function (err) {
+        if (err) console.log(err);
+        // skip the authentication for now;
+        // store user information in session, typically a user id
+        req.session.user = req.body.login_username;
+
+        // save the session before redirection to ensure page
+        // load does not happen before session is saved
+        req.session.save(function (err) {
+            if (err) return next(err)
+            res.redirect('/')
+        })
+    })
 })
+
 
 router.get("/registration", (req, res) => {
     return res.render("registration");
@@ -68,17 +102,9 @@ router.post("/addUserCredentials", urlencodedParser, validationRule, async (req,
 
 });
 
-    // //Create sessions
-    // app.use(session({
-    //     secret: "session_secret",
-    //     resave: false,
-    //     saveUninitialized: true,
-    //     cookie: { secure: false }
-    // }))
 
 
 //----------------------------------------image upload-------------------------------//
-const session = require("express-session");
 const flash = require("express-flash");
 const fileUpload = require("express-fileupload");
 //sharp - resizes the images 
@@ -86,14 +112,16 @@ const sharp = require("sharp");
 // need to npm install almost any require things apart from fs
 //fs/promises--> can use await and dont need to use callback by ourselves
 const fs = require("fs/promises");
+const session = require("express-session");
+const url = require("url");
 
-router.use(
-    session({
-      secret: "session_secret",
-      resave: false,
-      saveUninitialized: false,
-    })
-  );
+// router.use(
+//     session({
+//       secret: "session_secret",
+//       resave: false,
+//       saveUninitialized: false,
+//     })
+//   );
   
 router.use(flash());
 router.use(
@@ -107,10 +135,7 @@ router.use(
   );
 
 
- router.get("/", (req, res) => {
-    res.render("index.ejs", { messages: { error: null } });
-  });
-  
+
   const acceptedTypes = ["image/gif", "image/jpeg", "image/png"];
   
 router.post("/upload", async (req, res) => {

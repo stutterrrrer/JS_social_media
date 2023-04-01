@@ -1,0 +1,70 @@
+Index: app.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>const express = require(\"express\");\nconst bodyParser = require(\"body-parser\");\n\nconst urlencodedParser = bodyParser.urlencoded({ extended: false });\n\nconst path = require(\"path\");\nconst { allowedNodeEnvironmentFlags } = require(\"process\");\nconst PORT = 8000;\nvar app = express();\napp.set(\"view engine\", \"ejs\");\napp.set(\"views\", path.join(__dirname, \"./views\"));\napp.use(express.static(path.join(__dirname, \"./assets\")));\n\napp.get(\"/registration\", (req, res) => {\n    return res.render(\"registration\");\n})\n\n\napp.post(\"/addUserCredentials\", urlencodedParser, validationObject, async(req, res) => {\n    let email = req.body.email;\n    let username = req.body.username;\n    let password = req.body.password;\n    console.log(email);\n    const { check, validationResult } = require(\"express-validator\");\n    let validationObject = [\n        check(username).exists().trim().escape(),\n        // check(password).mixedCase().numbers().letters().min(8),\n        check(email).trim().isEmail().escape(),\n    ];\n    const errors = validationResult(req);\n    if (!errors.isEmpty()) {\n     //maybe?\n        console.log(\"error\");\n    }\n});\n\n\napp.listen(PORT, () => {\n    console.log(\"App running on http://localhost:\" + PORT);\n});\n\n\n\n\n\n\n\n// $(\"#submit\")[0].addEventListener(\"click\", function (event) {\n//     event.preventDefault();\n//     console.log();\n// })\n// function collect() {\n//     console.log(\"run\");\n//     const userName = document.querySelector('#username').value;\n//     const passWord = document.querySelector('#password').value;\n//     const email = document.querySelector('#email').value;\n//     console.log(userName, passWord, email);\n\n//     const dotenv = require(\"dotenv\");\n//     dotenv.config();\n//     const DBCONFIG = {\n//         host: process.env.DB_HOST,\n//         database: process.env.DB_NAME,\n//         user: process.env.DB_USERNAME,\n//         password: process.env.DB_PASSWORD\n//     };\n\n//     const connection = mysql.createConnection(DBCONFIG);\n//     connection.connect(function (err) {\n//         const query = `INSERT INTO user_credential(\\\n//         username, password, email\\\n//     ) VALUES (\\\n//         ${userName}, ${passWord}, ${email}\\\n//     );`\n\n\n//         connection.query(query, function (err, result, fields) {\n//             console.log(result);\n//         });\n//         connection.end();\n//     });\n// }\n\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app.js b/app.js
+--- a/app.js	(revision dad46af0e5b027c12c9d6bcea85837b086cb772b)
++++ b/app.js	(date 1679446111796)
+@@ -1,10 +1,10 @@
+ const express = require("express");
+ const bodyParser = require("body-parser");
+ 
+-const urlencodedParser = bodyParser.urlencoded({ extended: false });
++const urlencodedParser = bodyParser.urlencoded({extended: false});
+ 
+ const path = require("path");
+-const { allowedNodeEnvironmentFlags } = require("process");
++const {allowedNodeEnvironmentFlags} = require("process");
+ const PORT = 8000;
+ var app = express();
+ app.set("view engine", "ejs");
+@@ -16,21 +16,21 @@
+ })
+ 
+ 
+-app.post("/addUserCredentials", urlencodedParser, validationObject, async(req, res) => {
+-    let email = req.body.email;
+-    let username = req.body.username;
+-    let password = req.body.password;
+-    console.log(email);
+-    const { check, validationResult } = require("express-validator");
+-    let validationObject = [
+-        check(username).exists().trim().escape(),
+-        // check(password).mixedCase().numbers().letters().min(8),
+-        check(email).trim().isEmail().escape(),
+-    ];
++const {check, validationResult} = require("express-validator");
++let validationRule = [
++    check("username").exists().trim().escape(),
++    // check(password).mixedCase().numbers().letters().min(8),
++    check("email").trim().isEmail().escape(),
++];
++app.post("/addUserCredentials", urlencodedParser, validationRule, async (req, res) => {
++    console.log(req.body.email);
++    // "errors" data type is "Result"
+     const errors = validationResult(req);
+     if (!errors.isEmpty()) {
+-     //maybe?
+-        console.log("error");
++        errorArray = errors.array();
++        for (let i = 0; i < errorArray.length; i++) {
++            console.log(errorArray[i]);
++        }
+     }
+ });
+ 
+@@ -40,11 +40,6 @@
+ });
+ 
+ 
+-
+-
+-
+-
+-
+ // $("#submit")[0].addEventListener("click", function (event) {
+ //     event.preventDefault();
+ //     console.log();
